@@ -164,13 +164,17 @@ def download_model_from_mirror(_repo_id, _repo_type, allow_patterns=None, ignore
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--repo_id', default=None, type=str, required=True)
-    parser.add_argument('--repo_type', default="model",
-                        type=str, required=False)  # models,dataset
-    parser.add_argument('--mirror', action='store_true')
-    parser.add_argument('--allow_patterns', default=None, type=str)
-    parser.add_argument('--ignore_patterns', default=None, type=str)
+    parser.add_argument('--repo_id', default=os.getenv('HF_REPO_ID', None), type=str)
+    parser.add_argument('--repo_type', default=os.getenv('HF_REPO_TYPE', 'model'), type=str)  # models,dataset
+    parser.add_argument('--mirror', default=os.getenv('HF_MIRROR', None), action='store_true')
+    parser.add_argument('--allow_patterns', default=os.getenv('HF_ALLOW_PATTERNS', None), type=str)
+    parser.add_argument('--ignore_patterns', default=os.getenv('HF_IGNORE_PATTERNS', None), type=str)
+
     args = parser.parse_args()
+
+    if not args.repo_id:
+        parser.error("""the following arguments are required: --repo_id""")
+
     if args.mirror:
         download_model_from_mirror(args.repo_id, args.repo_type, args.allow_patterns, args.ignore_patterns)
     else:
