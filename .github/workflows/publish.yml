@@ -10,7 +10,7 @@ env:
   platform: 'linux/amd64,linux/arm64'
   image_name: 'huggingface-downloader'
   tag: 'latest'
-  ci_registry: 'registry.hub.docker.com'
+  ci_registry: 'docker.io'
 
 jobs:
   build:
