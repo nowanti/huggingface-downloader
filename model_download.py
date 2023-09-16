@@ -16,7 +16,7 @@ def _log(_repo_id, _type, _msg):
     print(date1 + " " + _repo_id + " " + _type + " :" + _msg)
 
 
-def _download_model(_repo_id, _repo_type):
+def _download_model(_repo_id, _repo_type, allow_patterns=None, ignore_patterns=None):
     if _repo_type == "model":
         _local_dir = 'dataroot/models/' + _repo_id
     else:
@@ -33,14 +33,22 @@ def _download_model(_repo_id, _repo_type):
         _local_dir_use_symlinks = False
     try:
         if _repo_type == "model":
-            snapshot_download(repo_id=_repo_id, cache_dir=_cache_dir, local_dir=_local_dir, local_dir_use_symlinks=_local_dir_use_symlinks,
-                              resume_download=True, max_workers=4)
+            snapshot_download(
+                repo_id=_repo_id, cache_dir=_cache_dir, local_dir=_local_dir,
+                local_dir_use_symlinks=_local_dir_use_symlinks,
+                resume_download=True, max_workers=4,
+                allow_patterns=allow_patterns, ignore_patterns=ignore_patterns
+            )
         else:
-            snapshot_download(repo_id=_repo_id, cache_dir=_cache_dir, local_dir=_local_dir, local_dir_use_symlinks=_local_dir_use_symlinks,
-                              resume_download=True, max_workers=4, repo_type="dataset")
+            snapshot_download(
+                repo_id=_repo_id, cache_dir=_cache_dir, local_dir=_local_dir,
+                local_dir_use_symlinks=_local_dir_use_symlinks,
+                resume_download=True, max_workers=4, repo_type="dataset",
+                allow_patterns=allow_patterns, ignore_patterns=ignore_patterns
+            )
     except Exception as e:
         error_msg = str(e)
-        if ("401 Client Error" in error_msg):
+        if "401 Client Error" in error_msg:
             return True, error_msg
         else:
             return False, error_msg
@@ -77,12 +85,12 @@ def _check_Completed(_repo_id, _local_dir):
     return True
 
 
-def download_model_retry(_repo_id, _repo_type):
+def download_model_retry(_repo_id, _repo_type, allow_patterns=None, ignore_patterns=None):
     i = 0
     flag = False
     msg = ""
     while True:
-        flag, msg = _download_model(_repo_id, _repo_type)
+        flag, msg = _download_model(_repo_id, _repo_type, allow_patterns, ignore_patterns)
         if flag:
             _log(_repo_id, "success", msg)
             break
@@ -141,16 +149,17 @@ def _download_model_from_mirror(_repo_id, _repo_type):
         _desc = str(i) + ' of ' + str(len(files)) + '(' + file['name'] + ')'
         i = i + 1
         with open(file_name, 'wb') as f:
-            for data in tqdm(iterable=response.iter_content(1024 * 1024), total=data_size, desc=_desc, unit='MB', bar_format=bar_format):
+            for data in tqdm(iterable=response.iter_content(1024 * 1024), total=data_size, desc=_desc, unit='MB',
+                             bar_format=bar_format):
                 f.write(data)
     return True
 
 
-def download_model_from_mirror(_repo_id, _repo_type):
+def download_model_from_mirror(_repo_id, _repo_type, allow_patterns=None, ignore_patterns=None):
     if _download_model_from_mirror(_repo_id, _repo_type):
         return
     else:
-        return download_model_retry(_repo_id, _repo_type)
+        return download_model_retry(_repo_id, _repo_type, allow_patterns, ignore_patterns)
 
 
 if __name__ == '__main__':
@@ -159,8 +168,10 @@ if __name__ == '__main__':
     parser.add_argument('--repo_type', default="model",
                         type=str, required=False)  # models,dataset
     parser.add_argument('--mirror', action='store_true')
+    parser.add_argument('--allow_patterns', default=None, type=str)
+    parser.add_argument('--ignore_patterns', default=None, type=str)
     args = parser.parse_args()
     if args.mirror:
-        download_model_from_mirror(args.repo_id, args.repo_type)
+        download_model_from_mirror(args.repo_id, args.repo_type, args.allow_patterns, args.ignore_patterns)
     else:
-        download_model_retry(args.repo_id, args.repo_type)
+        download_model_retry(args.repo_id, args.repo_type, args.allow_patterns, args.ignore_patterns)
