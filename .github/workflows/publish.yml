@@ -43,6 +43,5 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ env.image_name }}:${{ env.tag }}
-#            ghcr.io/${{ github.repository_owner }}/${{ env.image_name }}:${{ github.sha }}
             ${{ secrets.CI_REGISTRY_USERNAME }}/${{ env.image_name }}:${{ env.tag }}
             ${{ secrets.CI_REGISTRY_USERNAME }}/${{ env.image_name }}:${{ github.sha }}
